@@ -47,6 +47,10 @@ object ADBUtils {
         }
     }
 
+    fun stopShell() {
+        exec("sh sdcard/scripts/stop_all.sh")
+    }
+
     fun execRes(cmd: String): String {
         try {
 //            Runtime.getRuntime().exec("su")

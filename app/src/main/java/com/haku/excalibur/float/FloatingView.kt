@@ -77,16 +77,24 @@ class FloatingView(context: Context) : LinearLayout(context) {
                     Log.e("HaKu", "Click: ")
                     AssState.isRunning = if (AssState.isRunning) {
                         mImageView.setImageResource(R.drawable.start)
+                        if (isShell()) {
+                            ADBUtils.stopShell()
+                        }
                         false
                     } else {
                         mImageView.setImageResource(R.drawable.stop)
                         if (ADBUtils.curCmd.content.isNotEmpty()) {
                             mCurThread = thread {
-                                while (AssState.isRunning) {
-                                    Log.e("HaKu", "${mCurThread.id}")
+                                if (isShell()) {
+                                    Log.e("HaKu", "执行shell脚本：${ADBUtils.curCmd.content}")
                                     ADBUtils.exec(ADBUtils.curCmd.content)
-                                    if (ADBUtils.curCmd.gap.isNotBlank()) {
-                                        Thread.sleep(ADBUtils.curCmd.gap.toLong())
+                                } else {
+                                    while (AssState.isRunning) {
+                                        Log.e("HaKu", "${mCurThread.id}")
+                                        ADBUtils.exec(ADBUtils.curCmd.content)
+                                        if (ADBUtils.curCmd.gap.isNotBlank()) {
+                                            Thread.sleep(ADBUtils.curCmd.gap.toLong())
+                                        }
                                     }
                                 }
                             }
@@ -99,6 +107,14 @@ class FloatingView(context: Context) : LinearLayout(context) {
         }
 
         return false
+    }
+
+    /**
+     * 是否为执行shell脚本
+     * shell脚本的开启、关闭，不需要循环执行
+     * */
+    private fun isShell(): Boolean {
+        return ADBUtils.curCmd.content.endsWith(".sh")
     }
 
 }
